@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Struktur Organisasi by Level Jabatan</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+
+    .node rect {
+      fill: #007bff;
+      stroke: #fff;
+      stroke-width: 1.5px;
+      rx: 6;
+      ry: 6;
+    }
+
+    .node text {
+      fill: white;
+      font-size: 12px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .link {
+      fill: none;
+      stroke: #ccc;
+      stroke-width: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center">Struktur Berdasarkan Level Jabatan</h2>
+  <svg width="1200" height="700"></svg>
+  <script>
+    // Contoh data dengan level, tanpa parent
+    const jabatanData = [
+      { id: 1, name: "Budi", title: "Ketua", level: 1 },
+      { id: 2, name: "Sari", title: "Wakil Ketua", level: 2 },
+      { id: 3, name: "Andi", title: "Sekretaris", level: 2 },
+      { id: 4, name: "Rina", title: "Bendahara", level: 2 },
+      { id: 5, name: "Andi", title: "Sekretaris 2", level: 2 },
+      { id: 6, name: "Dinda", title: "Ketua Dokumentasi", level: 3 },
+      { id: 7, name: "Joko", title: "Ketua Sarpras", level: 3 },
+      { id: 8, name: "Lisa", title: "Ketua Acara", level: 3 },
+      { id: 10, name: "Putri", title: "Ketua Pendidikan", level: 3 }
+    ];
+
+    // Atur parent_id berdasarkan level
+    function generatePidByLevel(data) {
+      const grouped = {};
+      const result = [];
+
+      // Kelompokkan berdasarkan level
+      data.forEach(item => {
+        if (!grouped[item.level]) grouped[item.level] = [];
+        grouped[item.level].push(item);
+      });
+
+      data.forEach(item => {
+        if (item.level === 1) {
+          result.push({ ...item }); // root node
+        } else {
+          const upper = grouped[item.level - 1];
+          // Asosiasikan ke parent level atas pertama
+          const parent = upper[0];
+          result.push({ ...item, pid: parent.id });
+        }
+      });
+
+      return result;
+    }
+
+    const dataWithPid = generatePidByLevel(jabatanData);
+
+    const stratify = d3.stratify()
+      .id(d => d.id)
+      .parentId(d => d.pid);
+
+    const root = stratify(dataWithPid);
+    const treeLayout = d3.tree().size([1100, 600]);
+    treeLayout(root);
+
+    const svg = d3.select("svg");
+    const g = svg.append("g").attr("transform", "translate(50,50)");
+
+    g.selectAll(".link")
+      .data(root.links())
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr("d", d3.linkVertical()
+        .x(d => d.x)
+        .y(d => d.y)
+      );
+
+    const node = g.selectAll(".node")
+      .data(root.descendants())
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .attr("transform", d => `translate(${d.x},${d.y})`);
+
+    node.append("rect")
+      .attr("x", -60)
+      .attr("y", -20)
+      .attr("width", 120)
+      .attr("height", 40);
+
+    node.append("text")
+      .attr("dy", "-0.2em")
+      .text(d => d.data.name);
+
+    node.append("text")
+      .attr("dy", "1em")
+      .text(d => d.data.title)
+      .style("font-size", "10px");
+  </script>
+</body>
+</html>

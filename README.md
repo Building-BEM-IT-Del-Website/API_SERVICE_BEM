@@ -1,8 +1,5 @@
 # 🎓 Sistem Informasi BEM IT Del
 
-Proyek Laravel berbasis Docker (Laravel Sail) untuk mendukung pengelolaan organisasi mahasiswa di IT Del secara berkelanjutan dan konsisten di semua perangkat developer.
-
----
 
 ## ⚙️ Setup Developer (Langkah Awal)
 
