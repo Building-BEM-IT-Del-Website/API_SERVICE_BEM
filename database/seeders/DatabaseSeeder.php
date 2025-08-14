@@ -17,12 +17,15 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
-            PermissionSeeder::class,
+            JenisOrmawaSeeder::class,
+            OrmawaSeeder::class,
             RoleSeeder::class,
+            PermissionSeeder::class,
             UserSeeder::class,
-            // SatuanSeeder::class,
-            // JenisBarangSeeder::class,
-            // WebSeeder::class,
+            JabatanSeeder::class,
+            JabatanOrmawaPermissionSeeder::class,
+            StrukturOrganisasiSeeder::class,
+            RolePermissionSeeder::class,
         ]);
     }
 }

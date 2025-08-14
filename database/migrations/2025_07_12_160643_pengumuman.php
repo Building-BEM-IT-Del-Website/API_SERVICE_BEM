@@ -16,8 +16,24 @@ return new class extends Migration
             $table->string('nama_pengumuman')->unique();
             $table->text('deskripsi')->nullable();
             $table->foreignId('kategoris_id')->nullable()->constrained('kategoris')->onDelete('cascade');
+            $table->json('file_paths')->nullable();
+            $table->enum('tipe_pengumuman', [
+                'Reminder',
+                'Info',
+                'Penting',
+                'Umum',
+                'Darurat',
+                'Lainnya'
+            ])->default('Umum');
+            $table->dateTime('tanggal_mulai')->nullable();
+            $table->dateTime('tanggal_berakhir')->nullable();
+
+            // Relasi pembuat
             $table->foreignId('create_by')->nullable()->constrained('users')->onDelete('cascade');
-            $table->datetime('dibuat');
+
+            // Relasi opsional ke ormawa/kemahasiswaan
+            $table->foreignId('ormawa_id')->nullable()->constrained('ormawas')->onDelete('cascade');
+
             $table->softDeletes();
             $table->timestamps();
         });

@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kategoris', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sub_kategoris_id')->nullable()->constrained('sub_kategoris')->onDelete('cascade');
-            $table->string('nama')->unique();
-            $table->string('deskripsi')->nullable();
-            $table->foreignId('create_by')->nullable()->constrained('users')->onDelete('cascade');
+        Schema::create('ormawas', function (Blueprint $table) {
+           $table->id();
+            $table->string('nama', 100);
+            $table->foreignId('jenis_ormawa_id')->constrained()->onDelete('cascade');
+            $table->text('deskripsi');
+            $table->string('logo', 255);
+            $table->text('visi');
+            $table->text('misi');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->softDeletes();
             $table->timestamps();
         });

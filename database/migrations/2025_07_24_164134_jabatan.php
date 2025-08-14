@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-          Schema::create('struktur_organisasi', function (Blueprint $table) {
-            $table->id();
-            $table->string('nama');
+            Schema::create('jabatan', function (Blueprint $table) {
+            $table->id(); // id INT(11) PK
+            $table->string('nama', 100); // VARCHAR(100)
+            $table->text('deskripsi'); // TEXT
+            $table->integer('level'); // INT(11)
+            $table->softDeletes(); // deleted_at
+            $table->timestamps(); // created_at dan updated_at
         });
+
     }
 
     /**

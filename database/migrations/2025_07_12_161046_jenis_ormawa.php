@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-          Schema::create('ormawa', function (Blueprint $table) {
+        Schema::create('jenis_ormawas', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 
