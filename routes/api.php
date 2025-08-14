@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AspirasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\JenisOrmawaController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\OrmawaController;
+use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\SubKategoriController;
 use App\Http\Controllers\UserController;
@@ -17,6 +19,7 @@ Route::prefix('auth')->group(function () {
     // Hanya bisa diakses jika sudah login (token valid)
     Route::middleware('auth:api')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
+        Route::post('set-ormawa-aktif', [AuthController::class, 'setOrmawaAktif']);
     });
 });
 
@@ -24,6 +27,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:api')->group(function () {
     // RESTful CRUD user
     Route::apiResource('users', UserController::class)->middleware('struktur_permission:kelola_anggota');
+
     // Extra: restore & force-delete
     Route::prefix('users')->group(function () {
         Route::post('restore/{id}', [UserController::class, 'restore'])->name('users.restore');
@@ -40,7 +44,6 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::apiResource('jabatan', JabatanController::class);
-
 
 
     Route::apiResource('ormawas', OrmawaController::class);
@@ -66,12 +69,30 @@ Route::middleware('auth:api')->group(function () {
         Route::post('restore/{id}', [SubKategoriController::class, 'restore']);
         Route::delete('force-delete/{id}', [SubKategoriController::class, 'forceDelete']);
     });
-Route::apiResource('kategori', KategoriController::class);
 
-Route::prefix('kategori')->group(function () {
-    Route::get('trashed/list', [KategoriController::class, 'trashed']);
-    Route::post('restore/{id}', [KategoriController::class, 'restore']);
-    Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
+
+     Route::apiResource('kategori', KategoriController::class);
+
+    Route::prefix('kategori')->group(function () {
+        Route::get('trashed/list', [KategoriController::class, 'trashed']);
+        Route::post('restore/{id}', [KategoriController::class, 'restore']);
+        Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
+    });
+Route::apiResource('pengumuman', PengumumanController::class);
+
+Route::prefix('pengumuman')->group(function () {
+    Route::get('trashed/list', [PengumumanController::class, 'trashed']);
+    Route::post('restore/{id}', [PengumumanController::class, 'restore']);
+    Route::delete('force-delete/{id}', [PengumumanController::class, 'forceDelete']);
 });
 
+
+});
+
+Route::apiResource('aspirasi', AspirasiController::class);
+
+Route::prefix('aspirasi')->group(function () {
+    Route::get('list', [AspirasiController::class, 'trashed']);
+    Route::post('restore/{id}', [AspirasiController::class, 'restore']);
+    Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete']);
 });

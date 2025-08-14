@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-          Schema::create('aspirasi', function (Blueprint $table) {
+        Schema::create('aspirasi', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
+            $table->string('judul');
+            $table->string('deskripsi');
+            $table->enum('type', ['Pending', 'Approved', 'Rejected', 'Completed', 'In Progress']);
+            $table->string('nama')->nullable();
+            $table->string('respon')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 
