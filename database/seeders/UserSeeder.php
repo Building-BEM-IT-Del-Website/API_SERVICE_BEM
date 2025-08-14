@@ -19,6 +19,7 @@ class UserSeeder extends Seeder
     // Ambil role/jabatan yang sesuai untuk assign role_id di users
     $mahasiswaRole = Role::where('name', 'mahasiswa')->first(); // atau Jabatan::...
     $adminRole = Role::where('name', 'admin')->first();
+    $kemahasiswaanRole = Role::where('name', 'kemahasiswaan')->first();
 
     $user1 = User::updateOrCreate(
         ['email' => 'mahasiswa@example.com'],
@@ -41,6 +42,17 @@ class UserSeeder extends Seeder
         ]
     );
     $admin->assignRole('admin');
+    
+    $kemahasiswaan = User::updateOrCreate(
+        ['email' => 'kemahasiswaan@example.com'],
+        [
+            'username' => 'Kemahasiswaan A',
+            'nama_lengkap' => 'Kemahasiswaan',
+            'password' => bcrypt('password'),
+            'role_id' => $kemahasiswaanRole->id,
+        ]
+    );
+    $kemahasiswaan->assignRole('kemahasiswaan');
 
     app(PermissionRegistrar::class)->forgetCachedPermissions();
     }

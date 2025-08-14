@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             JabatanOrmawaPermissionSeeder::class,
             StrukturOrganisasiSeeder::class,
             RolePermissionSeeder::class,
+            AspirasiSeeder::class,
         ]);
     }
 }

@@ -11,9 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-          Schema::create('aspirasi', function (Blueprint $table) {
+        Schema::create('aspirasi', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
+            $table->string('judul');
+            $table->string('deskripsi');
+            $table->enum('status', ['Pending', 'Approved', 'Rejected', 'Completed', 'In Progress'])->default('Pending');
+            $table->string('nama')->nullable();
+            $table->string('respon')->nullable();
+            $table->foreignId('read_by')->nullable()->constrained('users')->onDelete('cascade');
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 

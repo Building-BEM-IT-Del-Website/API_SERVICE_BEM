@@ -16,7 +16,9 @@ class PermissionSeeder extends Seeder
         'lihat_dashboard',
         'edit_kegiatan',
         'hapus_kegiatan',
-        'mengelolah_user'
+        'mengelolah_user',
+        'lihat_aspirasi',
+        'kelola_aspirasi',
     ];
 
 

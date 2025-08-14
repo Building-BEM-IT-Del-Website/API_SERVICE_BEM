@@ -1,0 +1,29 @@
+GET http://127.0.0.1:8000/api/aspirasi/
+
+###
+GET http://127.0.0.1:8000/api/aspirasi/1
+
+###
+POST http://127.0.0.1:8000/api/aspirasi
+Content-Type: application/json
+
+{
+  "judul": "test aspirasi judul",
+  "deskripsi": "test aspirasi deskripsi",
+  "type": "pending",
+  "nama": "test nama",
+  "respon": "test respon"
+}
+
+###
+PATCH  http://127.0.0.1:8000/api/aspirasi/2
+Content-Type: application/json
+
+{
+ "judul": "Aspirasi ke 4",
+ "deskripsi": "Aspirasi ke 4",
+ "respon": "Aspirasi ke 4",
+}
+
+###
+DELETE http://127.0.0.1:8000/api/aspirasi/3
