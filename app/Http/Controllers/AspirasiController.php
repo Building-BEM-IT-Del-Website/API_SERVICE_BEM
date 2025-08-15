@@ -9,23 +9,17 @@ use Illuminate\Support\Facades\Auth;
 class AspirasiController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of aspirasi.
      */
     public function index()
     {
-        // $aspirasis = Aspirasi::all();
-        // return response()->json([
-        //     'success' => true,
-        //     'message' => 'Daftar semua aspirasi',
-        //     'data' => $aspirasis
-        // ], 200);
         $user = Auth::user();
 
         if ($user && $user->hasAnyRole(['admin', 'kemahasiswaan'])) {
-            // Admin dan kemahasiswaan lihat semua aspirasi
+            // Admin & Kemahasiswaan lihat semua aspirasi
             $aspirasis = Aspirasi::all();
         } else {
-            // Publik/mahasiswa hanya lihat yang status "In Progress"
+            // Publik/mahasiswa hanya lihat aspirasi yang sudah dipublikasikan
             $aspirasis = Aspirasi::whereIn('status', ['In Progress', 'Approved', 'Completed'])->get();
         }
 
@@ -34,34 +28,23 @@ class AspirasiController extends Controller
             'message' => 'Daftar aspirasi',
             'data' => $aspirasis
         ], 200);
-
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Store a newly created aspirasi.
      */
     public function store(Request $request)
     {
         $data = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
-            // 'status' => 'required|in:Pending,Approved,Rejected,Completed,In Progress',
             'nama' => 'nullable|string|max:255',
             'respon' => 'nullable|string',
         ]);
 
-        // $data['create_by'] = auth()->id();
-
-        // $aspirasi = Aspirasi::create($data);
+        // Status default dari migration adalah "Pending"
         $aspirasi = Aspirasi::create($data);
+
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil ditambahkan',
@@ -70,121 +53,103 @@ class AspirasiController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Show specific aspirasi.
      */
-    public function show($id)
+    public function show(Aspirasi $aspirasi)
+{
+    $user = Auth::user();
+
+    if (!$user || !$user->hasAnyRole(['admin', 'kemahasiswaan'])) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Hanya admin dan kemahasiswaan yang dapat melihat aspirasi ini',
+        ], 403);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Detail aspirasi',
+        'data' => $aspirasi
+    ], 200);
+}
+
+
+    /**
+     * Update aspirasi.
+     */
+    public function update(Request $request, Aspirasi $aspirasi)
     {
-        $aspirasi = Aspirasi::find($id);
-        if (!$aspirasi) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Aspirasi tidak ditemukan',
-                'data' => null
-            ], 404);
+        $data = $request->validate([
+            // 'judul' => 'sometimes|required|string|max:255',
+            // 'deskripsi' => 'sometimes|required|string',
+            'status' => 'sometimes|required|in:Pending,Approved,Rejected,Completed,In Progress',
+            // 'nama' => 'nullable|string|max:255',
+            'respon' => 'nullable|string',
+        ]);
+
+        $user = Auth::user();
+
+        // Jika ada field status, hanya admin yang bisa mengubah
+        if (isset($data['status'])) {
+            if (!$user || !$user->hasRole('admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya admin yang dapat mengubah status',
+                ], 403);
+            }
+            $aspirasi->status = $data['status'];
+            $aspirasi->read_by = $user->id; // Catat siapa admin yang mengubah
+            unset($data['status']); // hapus dari array agar tidak diproses lagi
         }
 
-        if (auth()->check() && is_null($aspirasi->Reader)) {
-            $aspirasi->update([
-                'status' => 'In Progress',
-                'read_by' => auth()->$id(),
-            ]);
-        }
+        // Update field lainnya
+        $aspirasi->update($data);
+        $aspirasi->save();
+
         return response()->json([
             'success' => true,
-            'message' => 'Detail aspirasi',
+            'message' => 'Aspirasi berhasil diperbarui',
             'data' => $aspirasi
         ], 200);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Aspirasi $aspirasi)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, Aspirasi $aspirasi)
-    // {
-    //     if (!$aspirasi) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Aspirasi tidak ditemukan',
-    //             'data' => null
-    //         ], 404);
-    //     }
-    //     $data = $request->validate([
-    //         'judul' => 'sometimes|required|string|max:255',
-    //         'deskripsi' => 'sometimes|required|string',
-    //         'status' => 'sometimes|required|in:Pending,Approved,Rejected,Completed,In Progress',
-    //         'nama' => 'nullable|string|max:255',
-    //         'respon' => 'nullable|string',
-    //     ]);
-    //     $aspirasi->update($data);
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Aspirasi berhasil diperbarui',
-    //         'data' => $aspirasi
-    //     ], 200);
-    // }
-    public function update(Request $request, Aspirasi $aspirasi)
-{
-    $data = $request->validate([
-        'judul' => 'sometimes|required|string|max:255',
-        'deskripsi' => 'sometimes|required|string',
-        'status' => 'sometimes|required|in:Pending,Approved,Rejected,Completed,In Progress',
-        'nama' => 'nullable|string|max:255',
-        'respon' => 'nullable|string',
-    ]);
-
-    $user = Auth::user();
-
-    // Jika ada field status yang diubah, cek role admin
-    if (isset($data['status']) && (!$user || !$user->hasRole('admin'))) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Hanya admin yang dapat mengubah status',
-        ], 403);
-    }
-
-    $aspirasi->update($data);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Aspirasi berhasil diperbarui',
-        'data' => $aspirasi
-    ], 200);
-}
-
-    /**
-     * Remove the specified resource from storage.
+     * Soft delete aspirasi.
      */
     public function destroy(Aspirasi $aspirasi)
     {
-        if (!$aspirasi) {
+        $user = Auth::user();
+        if (!$user || !$user->hasRole('admin')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Aspirasi tidak ditemukan',
-                'data' => null
-            ], 404);
+                'message' => 'Hanya admin yang dapat menghapus aspirasi',
+            ], 403);
         }
+
         $aspirasi->delete();
+
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil dihapus (soft delete)',
             'data' => null
         ], 200);
-
     }
+
     /**
-     * Display a listing of the trashed resources.
+     * Show trashed aspirasi.
      */
     public function trashed()
     {
+        $user = Auth::user();
+        if (!$user || !$user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya admin yang dapat melihat aspirasi terhapus',
+            ], 403);
+        }
+
         $aspirasis = Aspirasi::onlyTrashed()->get();
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar aspirasi yang terhapus',
@@ -193,10 +158,18 @@ class AspirasiController extends Controller
     }
 
     /**
-     * Restore the specified resource from trash.
+     * Restore aspirasi dari trash.
      */
     public function restore($id)
     {
+        $user = Auth::user();
+        if (!$user || !$user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya admin yang dapat merestore aspirasi',
+            ], 403);
+        }
+
         $aspirasi = Aspirasi::onlyTrashed()->find($id);
         if (!$aspirasi) {
             return response()->json([
@@ -205,7 +178,9 @@ class AspirasiController extends Controller
                 'data' => null
             ], 404);
         }
+
         $aspirasi->restore();
+
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil direstore',
@@ -214,10 +189,18 @@ class AspirasiController extends Controller
     }
 
     /**
-     * Permanently delete the specified resource from trash.
+     * Permanently delete aspirasi.
      */
     public function forceDelete($id)
     {
+        $user = Auth::user();
+        if (!$user || !$user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya admin yang dapat menghapus permanen aspirasi',
+            ], 403);
+        }
+
         $aspirasi = Aspirasi::onlyTrashed()->find($id);
         if (!$aspirasi) {
             return response()->json([
@@ -226,7 +209,9 @@ class AspirasiController extends Controller
                 'data' => null
             ], 404);
         }
+
         $aspirasi->forceDelete();
+
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil dihapus permanen',
@@ -234,4 +219,3 @@ class AspirasiController extends Controller
         ], 200);
     }
 }
-

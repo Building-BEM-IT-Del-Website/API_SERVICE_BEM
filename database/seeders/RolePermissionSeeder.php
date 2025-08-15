@@ -16,7 +16,7 @@ class RolePermissionSeeder extends Seeder
     {
        $rolesPermissions = [
             'mahasiswa' => ['kelola_anggota','authentikasi'],
-            'admin' => ['edit_kegiatan'],
+            'admin' => ['edit_kegiatan', 'lihat_aspirasi', 'kelola_aspirasi'],
             'kemahasiswaan' => ['lihat_aspirasi'],
         ];
 
