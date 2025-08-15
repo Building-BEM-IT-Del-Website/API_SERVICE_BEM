@@ -14,7 +14,7 @@ use App\Http\Controllers\UserController;
 Route::prefix('auth')->group(function () {
     // Login route tanpa middleware
     Route::post('login', [AuthController::class, 'login']);
-    
+
     // Hanya bisa diakses jika sudah login (token valid)
     Route::middleware('auth:api')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
@@ -31,9 +31,9 @@ Route::middleware('auth:api')->group(function () {
         Route::post('restore/{id}', [UserController::class, 'restore'])->name('users.restore');
         Route::delete('force-delete/{id}', [UserController::class, 'forceDelete'])->name('users.forceDelete');
     });
-    
+
     Route::apiResource('jenis-ormawas', JenisOrmawaController::class);
-    
+
     // Rute tambahan untuk soft delete
     Route::prefix('jenis-ormawas')->group(function () {
         Route::get('trashed/list', [JenisOrmawaController::class, 'trashed']);
@@ -44,46 +44,57 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('jabatan', JabatanController::class);
 
 
-    
+
     Route::apiResource('ormawas', OrmawaController::class);
-    
+
     Route::prefix('ormawas')->group(function () {
         Route::get('trashed/list', [OrmawaController::class, 'trashed']);
         Route::post('restore/{id}', [OrmawaController::class, 'restore']);
         Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
     });
-    
+
     Route::apiResource('struktur-organisasi', StrukturOrganisasiController::class);
-    
+
     Route::prefix('struktur-organisasi')->group(function () {
         Route::get('trashed/list', [StrukturOrganisasiController::class, 'trashed']);
         Route::post('restore/{id}', [StrukturOrganisasiController::class, 'restore']);
         Route::delete('force-delete/{id}', [StrukturOrganisasiController::class, 'forceDelete']);
     });
-    
+
     Route::apiResource('sub-kategori', SubKategoriController::class);
-    
+
     Route::prefix('sub-kategori')->group(function () {
         Route::get('trashed/list', [SubKategoriController::class, 'trashed']);
         Route::post('restore/{id}', [SubKategoriController::class, 'restore']);
         Route::delete('force-delete/{id}', [SubKategoriController::class, 'forceDelete']);
     });
     Route::apiResource('kategori', KategoriController::class);
-    
+
     Route::prefix('kategori')->group(function () {
         Route::get('trashed/list', [KategoriController::class, 'trashed']);
         Route::post('restore/{id}', [KategoriController::class, 'restore']);
         Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
     });
-    
-    //contoh
-    Route::get('aspirasi/{id}', [AspirasiController::class, 'show']);
+
+    Route::prefix('aspirasi')->group(function () {
+
+        // Rute show (detail aspirasi) butuh permission 'lihat_aspirasi' (untuk admin & kemahasiswaan)
+        Route::get('/{aspirasi}', [AspirasiController::class, 'show'])
+            ->name('show')
+            ->middleware('permission:lihat_aspirasi');
+
+        // Grup rute yang butuh permission 'kelola_aspirasi' (hanya admin)
+        Route::middleware('permission:kelola_aspirasi')->group(function () {
+            Route::patch('/{aspirasi}', [AspirasiController::class, 'update'])->name('update');
+            Route::delete('{aspirasi}', [AspirasiController::class, 'destroy'])->name('destroy');
+            Route::get('trashed/list', [AspirasiController::class, 'trashed'])->name('trashed');
+            Route::post('restore/{id}', [AspirasiController::class, 'restore'])->name('restore');
+            Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete'])->name('forceDelete');
+        });
+    });
 });
 
-Route::apiResource('aspirasi', AspirasiController::class);
-
-Route::prefix('aspirasi')->group(function () {
-    Route::get('list', [AspirasiController::class, 'trashed']);
-    Route::post('restore/{id}', [AspirasiController::class, 'restore']);
-    Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete']);
-});
+// RUTE UNTUK ASPIRASI
+// Rute Publik: index (daftar aspirasi publik) dan store (kirim aspirasi baru)
+Route::get('aspirasi/', [AspirasiController::class, 'index'])->name('index');
+Route::post('aspirasi/', [AspirasiController::class, 'store'])->name('store');

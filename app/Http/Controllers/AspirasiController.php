@@ -10,28 +10,29 @@ class AspirasiController extends Controller
 {
     /**
      * Display a listing of aspirasi.
+     * Logika ini tetap di sini karena berbeda antara user terautentikasi dan tamu.
      */
     public function index()
     {
-        $user = Auth::user();
-
-        if ($user && $user->hasAnyRole(['admin', 'kemahasiswaan'])) {
+        // 'can' untuk periksa permission, bukan role. Lebih fleksibel.
+        if (Auth::check() && Auth::user()->can('lihat_aspirasi')) {
             // Admin & Kemahasiswaan lihat semua aspirasi
-            $aspirasis = Aspirasi::all();
+            $aspirasis = Aspirasi::latest()->get();
         } else {
             // Publik/mahasiswa hanya lihat aspirasi yang sudah dipublikasikan
-            $aspirasis = Aspirasi::whereIn('status', ['In Progress', 'Approved', 'Completed'])->get();
+            $aspirasis = Aspirasi::whereIn('status', ['In Progress', 'Approved', 'Completed'])->latest()->get();
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Daftar aspirasi',
+            'message' => 'Daftar aspirasi berhasil diambil',
             'data' => $aspirasis
         ], 200);
     }
 
     /**
      * Store a newly created aspirasi.
+     * Tidak ada cek otorisasi, karena ini publik.
      */
     public function store(Request $request)
     {
@@ -39,10 +40,8 @@ class AspirasiController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'nama' => 'nullable|string|max:255',
-            'respon' => 'nullable|string',
         ]);
 
-        // Status default dari migration adalah "Pending"
         $aspirasi = Aspirasi::create($data);
 
         return response()->json([
@@ -54,56 +53,40 @@ class AspirasiController extends Controller
 
     /**
      * Show specific aspirasi.
+     * Cek otorisasi sudah dihandle oleh middleware 'permission:lihat_aspirasi'.
      */
     public function show(Aspirasi $aspirasi)
-{
-    $user = Auth::user();
-
-    if (!$user || !$user->hasAnyRole(['admin', 'kemahasiswaan'])) {
+    {
         return response()->json([
-            'success' => false,
-            'message' => 'Hanya admin dan kemahasiswaan yang dapat melihat aspirasi ini',
-        ], 403);
+            'success' => true,
+            'message' => 'Detail aspirasi',
+            'data' => $aspirasi
+        ], 200);
     }
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Detail aspirasi',
-        'data' => $aspirasi
-    ], 200);
-}
-
 
     /**
      * Update aspirasi.
+     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function update(Request $request, Aspirasi $aspirasi)
     {
         $data = $request->validate([
-            // 'judul' => 'sometimes|required|string|max:255',
-            // 'deskripsi' => 'sometimes|required|string',
             'status' => 'sometimes|required|in:Pending,Approved,Rejected,Completed,In Progress',
-            // 'nama' => 'nullable|string|max:255',
             'respon' => 'nullable|string',
         ]);
 
         $user = Auth::user();
 
-        // Jika ada field status, hanya admin yang bisa mengubah
+        // Logika bisnis tetap ada, tapi cek role sudah hilang
         if (isset($data['status'])) {
-            if (!$user || !$user->hasRole('admin')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Hanya admin yang dapat mengubah status',
-                ], 403);
-            }
             $aspirasi->status = $data['status'];
-            $aspirasi->read_by = $user->id; // Catat siapa admin yang mengubah
-            unset($data['status']); // hapus dari array agar tidak diproses lagi
+            $aspirasi->read_by = $user->id; 
         }
 
-        // Update field lainnya
-        $aspirasi->update($data);
+        if (isset($data['respon'])) {
+             $aspirasi->respon = $data['respon'];
+        }
+        
         $aspirasi->save();
 
         return response()->json([
@@ -115,39 +98,24 @@ class AspirasiController extends Controller
 
     /**
      * Soft delete aspirasi.
+     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function destroy(Aspirasi $aspirasi)
     {
-        $user = Auth::user();
-        if (!$user || !$user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya admin yang dapat menghapus aspirasi',
-            ], 403);
-        }
-
         $aspirasi->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil dihapus (soft delete)',
-            'data' => null
         ], 200);
     }
 
     /**
      * Show trashed aspirasi.
+     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function trashed()
     {
-        $user = Auth::user();
-        if (!$user || !$user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya admin yang dapat melihat aspirasi terhapus',
-            ], 403);
-        }
-
         $aspirasis = Aspirasi::onlyTrashed()->get();
 
         return response()->json([
@@ -159,26 +127,11 @@ class AspirasiController extends Controller
 
     /**
      * Restore aspirasi dari trash.
+     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function restore($id)
     {
-        $user = Auth::user();
-        if (!$user || !$user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya admin yang dapat merestore aspirasi',
-            ], 403);
-        }
-
-        $aspirasi = Aspirasi::onlyTrashed()->find($id);
-        if (!$aspirasi) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Aspirasi tidak ditemukan di trash',
-                'data' => null
-            ], 404);
-        }
-
+        $aspirasi = Aspirasi::onlyTrashed()->findOrFail($id);
         $aspirasi->restore();
 
         return response()->json([
@@ -190,32 +143,16 @@ class AspirasiController extends Controller
 
     /**
      * Permanently delete aspirasi.
+     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function forceDelete($id)
     {
-        $user = Auth::user();
-        if (!$user || !$user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya admin yang dapat menghapus permanen aspirasi',
-            ], 403);
-        }
-
-        $aspirasi = Aspirasi::onlyTrashed()->find($id);
-        if (!$aspirasi) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Aspirasi tidak ditemukan di trash',
-                'data' => null
-            ], 404);
-        }
-
+        $aspirasi = Aspirasi::onlyTrashed()->findOrFail($id);
         $aspirasi->forceDelete();
 
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil dihapus permanen',
-            'data' => null
         ], 200);
     }
 }
