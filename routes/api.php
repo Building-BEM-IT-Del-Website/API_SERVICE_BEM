@@ -10,6 +10,8 @@ use App\Http\Controllers\OrmawaController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\SubKategoriController;
+use App\Http\Controllers\BeritaController;
+
 use App\Http\Controllers\UserController;
 
 Route::prefix('auth')->group(function () {
@@ -79,7 +81,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
     });
 Route::apiResource('pengumuman', PengumumanController::class);
-
+Route::apiResource('berita', BeritaController::class);
 Route::prefix('pengumuman')->group(function () {
     Route::get('trashed/list', [PengumumanController::class, 'trashed']);
     Route::post('restore/{id}', [PengumumanController::class, 'restore']);
