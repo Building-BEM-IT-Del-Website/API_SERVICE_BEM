@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             StrukturOrganisasiSeeder::class,
             RolePermissionSeeder::class,
             AspirasiSeeder::class,
+            KalenderSeeder::class,
         ]);
     }
 }

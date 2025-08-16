@@ -19,6 +19,7 @@ class PermissionSeeder extends Seeder
         'mengelolah_user',
         'lihat_aspirasi',
         'kelola_aspirasi',
+        'kelola_kalender'
     ];
 
 

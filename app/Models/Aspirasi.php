@@ -17,6 +17,10 @@ class Aspirasi extends Model
         'respon',
         'read_by',
     ];
+    protected $hidden = [
+        'read_by',
+        'deleted_at',
+    ];
 
     protected $casts = [
         'status' => 'string',

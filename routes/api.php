@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\JenisOrmawaController;
+use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\OrmawaController;
 use App\Http\Controllers\StrukturOrganisasiController;
@@ -77,24 +78,37 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('aspirasi')->group(function () {
-
-        // Rute show (detail aspirasi) butuh permission 'lihat_aspirasi' (untuk admin & kemahasiswaan)
-        Route::get('/{aspirasi}', [AspirasiController::class, 'show'])
+        // butuh permission 'lihat_aspirasi' (admin & kemahasiswaan)
+        Route::get('{aspirasi}', [AspirasiController::class, 'show'])
             ->name('show')
             ->middleware('permission:lihat_aspirasi');
 
-        // Grup rute yang butuh permission 'kelola_aspirasi' (hanya admin)
+        // butuh permission 'kelola_aspirasi' (admin)
         Route::middleware('permission:kelola_aspirasi')->group(function () {
-            Route::patch('/{aspirasi}', [AspirasiController::class, 'update'])->name('update');
+            Route::patch('{aspirasi}', [AspirasiController::class, 'update'])->name('update');
             Route::delete('{aspirasi}', [AspirasiController::class, 'destroy'])->name('destroy');
             Route::get('trashed/list', [AspirasiController::class, 'trashed'])->name('trashed');
             Route::post('restore/{id}', [AspirasiController::class, 'restore'])->name('restore');
             Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete'])->name('forceDelete');
         });
     });
+    
+    // butuh permission 'kelola_kalender' (admin)
+    Route::prefix('kalender')->middleware(['permission:kelola_kalender'])->group(function () {
+        Route::post('/', [KalenderController::class, 'store'])->name('store');
+        Route::put('{kalender}', [KalenderController::class, 'update'])->name('update');
+        Route::delete('{kalender}', [KalenderController::class, 'destroy'])->name('destroy');
+
+        Route::get('trashed/list', [KalenderController::class, 'trashed'])->name('trashed');
+        Route::post('restore/{id}', [KalenderController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{id}', [KalenderController::class, 'forceDelete'])->name('forceDelete');
+    });
 });
 
-// RUTE UNTUK ASPIRASI
-// Rute Publik: index (daftar aspirasi publik) dan store (kirim aspirasi baru)
+// Rute Publik untuk aspirasi
 Route::get('aspirasi/', [AspirasiController::class, 'index'])->name('index');
 Route::post('aspirasi/', [AspirasiController::class, 'store'])->name('store');
+
+// Rute publik untuk kalender
+Route::get('kalender', [KalenderController::class, 'index'])->name('kalender.index');
+Route::get('kalender/{kalender}', [KalenderController::class, 'show'])->name('kalender.show');

@@ -10,17 +10,16 @@ class AspirasiController extends Controller
 {
     /**
      * Display a listing of aspirasi.
-     * Logika ini tetap di sini karena berbeda antara user terautentikasi dan tamu.
      */
     public function index()
     {
-        // 'can' untuk periksa permission, bukan role. Lebih fleksibel.
         if (Auth::check() && Auth::user()->can('lihat_aspirasi')) {
-            // Admin & Kemahasiswaan lihat semua aspirasi
-            $aspirasis = Aspirasi::latest()->get();
+            // Eager load relasi 'reader' untuk menghindari N+1 problem
+            $aspirasis = Aspirasi::with('reader')->latest()->get();
         } else {
-            // Publik/mahasiswa hanya lihat aspirasi yang sudah dipublikasikan
-            $aspirasis = Aspirasi::whereIn('status', ['In Progress', 'Approved', 'Completed'])->latest()->get();
+            $aspirasis = Aspirasi::whereIn('status', ['In Progress', 'Approved', 'Completed'])
+                ->with('reader')
+                ->latest()->get();
         }
 
         return response()->json([
@@ -32,17 +31,16 @@ class AspirasiController extends Controller
 
     /**
      * Store a newly created aspirasi.
-     * Tidak ada cek otorisasi, karena ini publik.
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validatedData = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'nama' => 'nullable|string|max:255',
         ]);
 
-        $aspirasi = Aspirasi::create($data);
+        $aspirasi = Aspirasi::create($validatedData);
 
         return response()->json([
             'success' => true,
@@ -53,10 +51,12 @@ class AspirasiController extends Controller
 
     /**
      * Show specific aspirasi.
-     * Cek otorisasi sudah dihandle oleh middleware 'permission:lihat_aspirasi'.
      */
     public function show(Aspirasi $aspirasi)
     {
+        // Muat relasi 'reader' untuk response yang lengkap
+        $aspirasi->load('reader');
+
         return response()->json([
             'success' => true,
             'message' => 'Detail aspirasi',
@@ -66,28 +66,23 @@ class AspirasiController extends Controller
 
     /**
      * Update aspirasi.
-     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function update(Request $request, Aspirasi $aspirasi)
     {
-        $data = $request->validate([
+        $validatedData = $request->validate([
             'status' => 'sometimes|required|in:Pending,Approved,Rejected,Completed,In Progress',
             'respon' => 'nullable|string',
         ]);
 
-        $user = Auth::user();
-
-        // Logika bisnis tetap ada, tapi cek role sudah hilang
-        if (isset($data['status'])) {
-            $aspirasi->status = $data['status'];
-            $aspirasi->read_by = $user->id; 
-        }
-
-        if (isset($data['respon'])) {
-             $aspirasi->respon = $data['respon'];
+        // Jika ada status yang diupdate, dicatat siapa yang update
+        if ($request->has('status')) {
+            $validatedData['read_by'] = Auth::id();
         }
         
-        $aspirasi->save();
+        $aspirasi->update($validatedData);
+
+        // Muat relasi 'reader' agar data terbaru dikirim di response
+        $aspirasi->load('reader');
 
         return response()->json([
             'success' => true,
@@ -98,7 +93,6 @@ class AspirasiController extends Controller
 
     /**
      * Soft delete aspirasi.
-     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function destroy(Aspirasi $aspirasi)
     {
@@ -112,11 +106,10 @@ class AspirasiController extends Controller
 
     /**
      * Show trashed aspirasi.
-     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function trashed()
     {
-        $aspirasis = Aspirasi::onlyTrashed()->get();
+        $aspirasis = Aspirasi::onlyTrashed()->with('reader')->latest()->get();
 
         return response()->json([
             'success' => true,
@@ -127,12 +120,14 @@ class AspirasiController extends Controller
 
     /**
      * Restore aspirasi dari trash.
-     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function restore($id)
     {
         $aspirasi = Aspirasi::onlyTrashed()->findOrFail($id);
         $aspirasi->restore();
+
+        // Muat relasi 'reader' untuk response
+        $aspirasi->load('reader');
 
         return response()->json([
             'success' => true,
@@ -143,7 +138,6 @@ class AspirasiController extends Controller
 
     /**
      * Permanently delete aspirasi.
-     * Cek otorisasi sudah dihandle oleh middleware 'permission:kelola_aspirasi'.
      */
     public function forceDelete($id)
     {
