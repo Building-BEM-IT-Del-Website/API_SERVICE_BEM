@@ -17,22 +17,20 @@ class BeritaController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nama' => 'required|string|max:255'
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'nama' => 'required|string|max:255',
+    ]);
 
-        $berita = Berita::create([
-            'nama' => $request->nama
-        ]);
+    $berita = Berita::create($request->only('nama'));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Berita berhasil ditambahkan',
-            'data' => $berita
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Berita berhasil ditambahkan',
+        'data' => $berita,
+    ], 201);
+}
 
     public function show($id)
     {
