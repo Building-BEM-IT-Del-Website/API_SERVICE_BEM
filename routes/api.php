@@ -8,8 +8,11 @@ use App\Http\Controllers\JenisOrmawaController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\OrmawaController;
+use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\SubKategoriController;
+use App\Http\Controllers\BeritaController;
+
 use App\Http\Controllers\UserController;
 
 Route::prefix('auth')->group(function () {
@@ -19,6 +22,7 @@ Route::prefix('auth')->group(function () {
     // Hanya bisa diakses jika sudah login (token valid)
     Route::middleware('auth:api')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
+        Route::post('set-ormawa-aktif', [AuthController::class, 'setOrmawaAktif']);
     });
 });
 
@@ -27,6 +31,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:api')->group(function () {
     // RESTful CRUD user
     Route::apiResource('users', UserController::class)->middleware('struktur_permission:kelola_anggota');
+
     // Extra: restore & force-delete
     Route::prefix('users')->group(function () {
         Route::post('restore/{id}', [UserController::class, 'restore'])->name('users.restore');
@@ -44,15 +49,22 @@ Route::middleware('auth:api')->group(function () {
 
     Route::apiResource('jabatan', JabatanController::class);
 
+Route::prefix('jabatan')->group(function () {
+    Route::get('trashed/list', [JabatanController::class, 'trashed']);
+    Route::post('restore/{id}', [JabatanController::class, 'restore']);
+    Route::delete('force-delete/{id}', [JabatanController::class, 'forceDelete']);
+});
 
 
     Route::apiResource('ormawas', OrmawaController::class);
 
-    Route::prefix('ormawas')->group(function () {
-        Route::get('trashed/list', [OrmawaController::class, 'trashed']);
-        Route::post('restore/{id}', [OrmawaController::class, 'restore']);
-        Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
-    });
+Route::prefix('ormawas')->group(function () {
+    Route::get('trashed/list', [OrmawaController::class, 'trashed']);
+    Route::post('{id}/update', [OrmawaController::class, 'updatee']);
+    Route::post('restore/{id}', [OrmawaController::class, 'restore']);
+    Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
+});
+
 
     Route::apiResource('struktur-organisasi', StrukturOrganisasiController::class);
 
@@ -69,13 +81,24 @@ Route::middleware('auth:api')->group(function () {
         Route::post('restore/{id}', [SubKategoriController::class, 'restore']);
         Route::delete('force-delete/{id}', [SubKategoriController::class, 'forceDelete']);
     });
-    Route::apiResource('kategori', KategoriController::class);
+
+
+     Route::apiResource('kategori', KategoriController::class);
 
     Route::prefix('kategori')->group(function () {
         Route::get('trashed/list', [KategoriController::class, 'trashed']);
         Route::post('restore/{id}', [KategoriController::class, 'restore']);
         Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
     });
+
+Route::apiResource('pengumuman', PengumumanController::class);
+Route::prefix('pengumuman')->group(function () {
+    Route::get('trashed/list', [PengumumanController::class, 'trashed']);
+    Route::post('restore/{id}', [PengumumanController::class, 'restore']);
+    Route::delete('force-delete/{id}', [PengumumanController::class, 'forceDelete']);
+});
+
+
 
     Route::prefix('aspirasi')->group(function () {
         // butuh permission 'lihat_aspirasi' (admin & kemahasiswaan)
@@ -92,8 +115,8 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete'])->name('forceDelete');
         });
     });
-    
-    // butuh permission 'kelola_kalender' (admin)
+
+    // butuh permission 'kelola_kalendWer' (admin)
     Route::prefix('kalender')->middleware(['permission:kelola_kalender'])->group(function () {
         Route::post('/', [KalenderController::class, 'store'])->name('store');
         Route::patch('{kalender}', [KalenderController::class, 'update'])->name('update');
@@ -102,6 +125,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('trashed/list', [KalenderController::class, 'trashed'])->name('trashed');
         Route::post('restore/{id}', [KalenderController::class, 'restore'])->name('restore');
         Route::delete('force-delete/{id}', [KalenderController::class, 'forceDelete'])->name('forceDelete');
+        Route::apiResource('berita', BeritaController::class);
     });
 });
 

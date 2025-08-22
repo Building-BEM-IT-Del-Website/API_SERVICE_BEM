@@ -12,23 +12,19 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         // Ambil semua nama role yang dimiliki user
-        $roles = $this->getRoleNames();
+       $roles = $this->getRoleNames();
 
-        // Ambil semua permission dari role
         $rolePermissions = $this->getAllPermissions()
             ->pluck('name')
             ->unique()
             ->values();
 
-        // Ambil struktur organisasi aktif beserta relasi ormawa dan jabatan
         $strukturAktif = $this->strukturOrganisasiAktif()
             ->with(['ormawa', 'jabatan'])
             ->get();
 
-        // Inisialisasi collection kosong untuk permission organisasi
         $organisasiPermissions = collect();
 
-        // Jika user punya role "mahasiswa" dan punya struktur aktif
         if ($roles->contains('mahasiswa') && $strukturAktif->isNotEmpty()) {
             foreach ($strukturAktif as $struktur) {
                 $names = DB::table('ormawa_jabatan_permissions')
@@ -37,11 +33,9 @@ class UserResource extends JsonResource
                     ->where('ormawa_jabatan_permissions.jabatan_id', $struktur->jabatan_id)
                     ->pluck('permissions.name');
 
-                // Gabungkan dengan collection sebelumnya
                 $organisasiPermissions = $organisasiPermissions->merge($names);
             }
 
-            // Hilangkan duplikat dan reset index
             $organisasiPermissions = $organisasiPermissions->unique()->values();
         }
 
@@ -58,10 +52,19 @@ class UserResource extends JsonResource
 
             'struktur_organisasi' => $strukturAktif->map(function ($s) {
                 return [
-                    'ormawa' => $s->ormawa->nama ?? null,
-                    'jabatan' => $s->jabatan->nama ?? null,
+                    'ormawa' => [
+                        'id'   => $s->ormawa->id ?? null,
+                        'nama' => $s->ormawa->nama ?? null,
+                        'logo' => $s->ormawa && $s->ormawa->logo
+                            ? asset('storage/' . $s->ormawa->logo)
+                            : null,
+                    ],
+                    'jabatan' => [
+                        'id'   => $s->jabatan->id ?? null,
+                        'nama' => $s->jabatan->nama ?? null,
+                    ],
                     'periode' => $s->periode,
-                    'status' => $s->status,
+                    'status'  => $s->status,
                 ];
             }),
 

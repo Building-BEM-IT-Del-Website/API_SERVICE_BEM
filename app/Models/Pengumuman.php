@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pengumuman extends Model
 {
-     use SoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'pengumuman';
 
@@ -19,7 +19,8 @@ class Pengumuman extends Model
         'tipe_pengumuman',
         'tanggal_mulai',
         'tanggal_berakhir',
-        'create_by'
+        'create_by',
+        'ormawa_id'
     ];
 
     protected $casts = [
@@ -27,7 +28,6 @@ class Pengumuman extends Model
         'tanggal_mulai' => 'datetime',
         'tanggal_berakhir' => 'datetime',
     ];
-
     public function kategori()
     {
         return $this->belongsTo(Kategori::class, 'kategoris_id');

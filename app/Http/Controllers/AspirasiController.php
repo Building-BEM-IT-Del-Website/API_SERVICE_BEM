@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Aspirasi;
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Auth;
+
 
 class AspirasiController extends Controller
 {
     /**
+
      * Display a listing of aspirasi.
      */
     public function index()
@@ -25,11 +28,13 @@ class AspirasiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Daftar aspirasi berhasil diambil',
+
             'data' => $aspirasis
         ], 200);
     }
 
     /**
+
      * Store a newly created aspirasi.
      */
     public function store(Request $request)
@@ -65,6 +70,7 @@ class AspirasiController extends Controller
     }
 
     /**
+
      * Update aspirasi.
      */
     public function update(Request $request, Aspirasi $aspirasi)
@@ -78,12 +84,11 @@ class AspirasiController extends Controller
         if ($request->has('status')) {
             $validatedData['read_by'] = Auth::id();
         }
-        
+
         $aspirasi->update($validatedData);
 
         // Muat relasi 'reader' agar data terbaru dikirim di response
         $aspirasi->load('reader');
-
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil diperbarui',
@@ -92,6 +97,7 @@ class AspirasiController extends Controller
     }
 
     /**
+
      * Soft delete aspirasi.
      */
     public function destroy(Aspirasi $aspirasi)
@@ -111,6 +117,7 @@ class AspirasiController extends Controller
     {
         $aspirasis = Aspirasi::onlyTrashed()->with('reader')->latest()->get();
 
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar aspirasi yang terhapus',
@@ -129,6 +136,7 @@ class AspirasiController extends Controller
         // Muat relasi 'reader' untuk response
         $aspirasi->load('reader');
 
+
         return response()->json([
             'success' => true,
             'message' => 'Aspirasi berhasil direstore',
@@ -137,6 +145,7 @@ class AspirasiController extends Controller
     }
 
     /**
+
      * Permanently delete aspirasi.
      */
     public function forceDelete($id)

@@ -22,7 +22,7 @@ class AuthController extends Controller
     }
 
     /** POST /api/auth/login */
-   public function login(Request $request): JsonResponse
+  public function login(Request $request): JsonResponse
 {
     $request->validate([
         'username' => 'required|string',
@@ -39,21 +39,26 @@ class AuthController extends Controller
         ], 401);
     }
 
-    // Ambil user
+    // Ambil user dari token
     $user = auth('api')->setToken($token)->user();
 
-    // Cari organisasi aktif di mana dia ketua
-    $ormawaAktif = DB::table('struktur_organisasis')
+    // Ambil struktur organisasi aktif user (jika mahasiswa)
+    $strukturAktif = DB::table('struktur_organisasis')
         ->join('jabatan', 'struktur_organisasis.jabatan_id', '=', 'jabatan.id')
         ->where('struktur_organisasis.user_id', $user->id)
-        ->where('jabatan.nama', 'Ketua')
         ->where('struktur_organisasis.status', 'active')
-        ->orderBy('struktur_organisasis.tanggal_mulai', 'desc')
-        ->select('struktur_organisasis.ormawa_id')
-        ->first();
+        ->whereDate('struktur_organisasis.tanggal_mulai', '<=', now())
+        ->whereDate('struktur_organisasis.tanggal_selesai', '>=', now())
+        ->select(
+            'struktur_organisasis.ormawa_id',
+            'struktur_organisasis.jabatan_id',
+            'jabatan.nama as jabatan_nama'
+        )
+        ->get();
 
-    // Tambahkan ormawa_aktif_id ke data user
-    $user->ormawa_aktif_id = $ormawaAktif->ormawa_id ?? null;
+    // Tambahkan default_ormawa_id ke user
+    $user->default_ormawa_id = $strukturAktif->first()->ormawa_id ?? null;
+    $user->struktur_aktif = $strukturAktif;
 
     return response()->json([
         'success' => true,
@@ -62,12 +67,10 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => new UserResource($user), // pastikan resource ikut menampilkan ormawa_aktif_id
+            'user' => new UserResource($user),
         ],
     ]);
 }
-
-
 
     /** GET /api/users */
     public function allUsers(): JsonResponse

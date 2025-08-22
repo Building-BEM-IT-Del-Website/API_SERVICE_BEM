@@ -14,13 +14,34 @@ class JenisOrmawaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama' => 'required|string|max:255',
+        ], [
+            'nama.required' => 'Nama jenis Ormawa wajib diisi.',
+            'nama.string' => 'Nama harus berupa teks.',
+            'nama.max' => 'Nama maksimal 255 karakter.',
         ]);
 
-        $jenis = JenisOrmawa::create($request->only('nama'));
+        $existing = JenisOrmawa::withTrashed()->where('nama', $validated['nama'])->first();
+        if ($existing) {
+            if ($existing->trashed()) {
+                return response()->json([
+                    'message' => 'Nama jenis Ormawa ini sudah ada tapi telah dihapus. Anda bisa merestore data ini.',
+                    'restore_id' => $existing->id
+                ], 422);
+            } else {
+                return response()->json([
+                    'message' => 'Nama jenis Ormawa ini sudah ada dan tidak bisa digunakan lagi.'
+                ], 422);
+            }
+        }
 
-        return response()->json($jenis, 201);
+        $jenis = JenisOrmawa::create($validated);
+
+        return response()->json([
+            'message' => 'Jenis Ormawa berhasil dibuat.',
+            'data' => $jenis
+        ], 201);
     }
 
     public function show($id)
@@ -31,14 +52,40 @@ class JenisOrmawaController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $jenis = JenisOrmawa::findOrFail($id);
+
+        $validated = $request->validate([
             'nama' => 'required|string|max:255',
+        ], [
+            'nama.required' => 'Nama jenis Ormawa wajib diisi.',
+            'nama.string' => 'Nama harus berupa teks.',
+            'nama.max' => 'Nama maksimal 255 karakter.',
         ]);
 
-        $jenis = JenisOrmawa::findOrFail($id);
-        $jenis->update($request->only('nama'));
+        $existing = JenisOrmawa::withTrashed()
+            ->where('nama', $validated['nama'])
+            ->where('id', '!=', $id)
+            ->first();
 
-        return response()->json($jenis);
+        if ($existing) {
+            if ($existing->trashed()) {
+                return response()->json([
+                    'message' => 'Nama jenis Ormawa ini sudah ada tapi telah dihapus. Anda bisa merestore data ini.',
+                    'restore_id' => $existing->id
+                ], 422);
+            } else {
+                return response()->json([
+                    'message' => 'Nama jenis Ormawa ini sudah ada dan tidak bisa digunakan lagi.'
+                ], 422);
+            }
+        }
+
+        $jenis->update($validated);
+
+        return response()->json([
+            'message' => 'Jenis Ormawa berhasil diperbarui.',
+            'data' => $jenis
+        ]);
     }
 
     public function destroy($id)
@@ -46,30 +93,31 @@ class JenisOrmawaController extends Controller
         $jenis = JenisOrmawa::findOrFail($id);
         $jenis->delete();
 
-        return response()->json(['message' => 'Deleted successfully']);
+        return response()->json(['message' => 'Jenis Ormawa berhasil dihapus (soft delete).']);
     }
 
-    // Restore soft deleted
+    public function trashed()
+    {
+        $trashed = JenisOrmawa::onlyTrashed()->get();
+        return response()->json($trashed);
+    }
+
     public function restore($id)
     {
         $jenis = JenisOrmawa::onlyTrashed()->findOrFail($id);
         $jenis->restore();
 
-        return response()->json(['message' => 'Restored successfully']);
+        return response()->json([
+            'message' => 'Jenis Ormawa berhasil direstore.',
+            'data' => $jenis
+        ]);
     }
 
-    // Force delete permanently
     public function forceDelete($id)
     {
         $jenis = JenisOrmawa::onlyTrashed()->findOrFail($id);
         $jenis->forceDelete();
 
-        return response()->json(['message' => 'Deleted permanently']);
-    }
-
-    // Get all soft-deleted entries
-    public function trashed()
-    {
-        return response()->json(JenisOrmawa::onlyTrashed()->get());
+        return response()->json(['message' => 'Jenis Ormawa berhasil dihapus permanen.']);
     }
 }

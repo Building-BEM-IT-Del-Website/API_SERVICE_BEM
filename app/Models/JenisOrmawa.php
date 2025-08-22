@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JenisOrmawa extends Model
 {
-     use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-         protected $fillable = ['nama'];
-
+    protected $fillable = ['nama'];
 }
