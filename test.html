@@ -1,122 +1,163 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Struktur Organisasi by Level Jabatan</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal BEM IT Del - Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
-    .node rect {
-      fill: #007bff;
-      stroke: #fff;
-      stroke-width: 1.5px;
-      rx: 6;
-      ry: 6;
-    }
+    <style>
+        body {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .circle { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.15); }
+        .c1 { width: 200px; height: 200px; top: 20px; left: 20px; }
+        .c2 { width: 300px; height: 300px; top: 100px; right: -150px; }
+        .c3 { width: 150px; height: 150px; bottom: 50px; left: -75px; }
+        .c4 { width: 120px; height: 120px; top: 60%; left: 25%; }
 
-    .node text {
-      fill: white;
-      font-size: 12px;
-      text-anchor: middle;
-      dominant-baseline: middle;
-    }
-
-    .link {
-      fill: none;
-      stroke: #ccc;
-      stroke-width: 2px;
-    }
-  </style>
+        .login-card {
+            position: relative;
+            background: white;
+            border-radius: 26px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 380px;
+            z-index: 2;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .logo-box {
+            width: 60px; height: 60px; background: #2563eb; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto;
+        }
+        .logo-box span { color: white; font-weight: bold; font-size: 20px; }
+        .welcome-title { font-size: 22px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+        .welcome-subtitle { font-size: 15px; font-weight: 600; color: #2563eb; margin-bottom: 6px; }
+        .welcome-description { font-size: 13px; color: #6b7280; line-height: 1.4; margin-bottom: 25px; }
+        .form-control {
+            height: 48px; border-radius: 12px; border: 1.5px solid #e5e7eb; padding-left: 40px; font-size: 14px;
+        }
+        .form-control:focus { border-color: #2563eb; box-shadow: none; }
+        .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 15px; }
+        .password-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9ca3af; font-size: 15px; }
+        .btn-login {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white; font-weight: 600; border: none; border-radius: 12px; height: 48px; font-size: 15px; margin-top: 5px;
+        }
+        .btn-login:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .forgot-password { font-size: 13px; color: #2563eb; text-decoration: none; }
+        .forgot-password:hover { text-decoration: underline; }
+        .form-check-label { font-size: 13px; color: #6b7280; }
+        .footer-text { font-size: 11px; color: #9ca3af; margin-top: 25px; line-height: 1.4; }
+    </style>
 </head>
 <body>
-  <h2 style="text-align:center">Struktur Berdasarkan Level Jabatan</h2>
-  <svg width="1200" height="700"></svg>
-  <script>
-    // Contoh data dengan level, tanpa parent
-    const jabatanData = [
-      { id: 1, name: "Budi", title: "Ketua", level: 1 },
-      { id: 2, name: "Sari", title: "Wakil Ketua", level: 2 },
-      { id: 3, name: "Andi", title: "Sekretaris", level: 2 },
-      { id: 4, name: "Rina", title: "Bendahara", level: 2 },
-      { id: 5, name: "Andi", title: "Sekretaris 2", level: 2 },
-      { id: 6, name: "Dinda", title: "Ketua Dokumentasi", level: 3 },
-      { id: 7, name: "Joko", title: "Ketua Sarpras", level: 3 },
-      { id: 8, name: "Lisa", title: "Ketua Acara", level: 3 },
-      { id: 10, name: "Putri", title: "Ketua Pendidikan", level: 3 }
-    ];
+    <div class="circle c1"></div>
+    <div class="circle c2"></div>
+    <div class="circle c3"></div>
+    <div class="circle c4"></div>
 
-    // Atur parent_id berdasarkan level
-    function generatePidByLevel(data) {
-      const grouped = {};
-      const result = [];
+    <div class="login-card">
+        <div class="logo-box"><span>DEL</span></div>
+        <h2 class="welcome-title">Selamat Datang</h2>
+        <p class="welcome-subtitle">Portal BEM IT Del</p>
+        <p class="welcome-description">Masuk ke Sistem Informasi Badan<br>Eksekutif Mahasiswa Institut Teknologi Del</p>
 
-      // Kelompokkan berdasarkan level
-      data.forEach(item => {
-        if (!grouped[item.level]) grouped[item.level] = [];
-        grouped[item.level].push(item);
-      });
+        <form id="loginForm">
+            <div class="mb-3 position-relative">
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" class="form-control" placeholder="Masukkan username BEM Anda">
+            </div>
+            <div class="mb-3 position-relative">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" class="form-control" placeholder="Masukkan password BEM Anda">
+                <button type="button" class="password-toggle" onclick="togglePassword()">
+                    <i class="fas fa-eye" id="eyeIcon"></i>
+                </button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">Ingat saya</label>
+                </div>
+                <a href="#" class="forgot-password">Lupa password?</a>
+            </div>
+            <button type="submit" class="btn btn-login w-100"><i class="fas fa-sign-in-alt me-2"></i>Masuk ke Portal</button>
+        </form>
 
-      data.forEach(item => {
-        if (item.level === 1) {
-          result.push({ ...item }); // root node
+        <div class="footer-text">
+            © 2024 BEM Institut Teknologi Del<br>
+            Jl. Sisingamangaraja, Sitoluama, Laguboti, Toba Samosir<br>
+            Sumatera Utara 22381, Indonesia
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+   <script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
         } else {
-          const upper = grouped[item.level - 1];
-          // Asosiasikan ke parent level atas pertama
-          const parent = upper[0];
-          result.push({ ...item, pid: parent.id });
+            passwordInput.type = 'password';
+            eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
         }
-      });
-
-      return result;
     }
 
-    const dataWithPid = generatePidByLevel(jabatanData);
+    function showToast(message, type = "info") {
+        let bgColor = "#2563eb";
+        if (type === "success") bgColor = "#16a34a";
+        if (type === "error") bgColor = "#dc2626";
+        if (type === "warning") bgColor = "#f59e0b";
 
-    const stratify = d3.stratify()
-      .id(d => d.id)
-      .parentId(d => d.pid);
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: bgColor,
+            close: true,
+            stopOnFocus: true
+        }).showToast();
+    }
 
-    const root = stratify(dataWithPid);
-    const treeLayout = d3.tree().size([1100, 600]);
-    treeLayout(root);
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
 
-    const svg = d3.select("svg");
-    const g = svg.append("g").attr("transform", "translate(50,50)");
+        if (!username || !password) {
+            showToast("Harap isi username dan password!", "warning");
+            return;
+        }
 
-    g.selectAll(".link")
-      .data(root.links())
-      .enter()
-      .append("path")
-      .attr("class", "link")
-      .attr("d", d3.linkVertical()
-        .x(d => d.x)
-        .y(d => d.y)
-      );
+        if (username === "carlo" && password === "carlo") {
+            const btn = document.querySelector('.btn-login');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+            btn.disabled = true;
 
-    const node = g.selectAll(".node")
-      .data(root.descendants())
-      .enter()
-      .append("g")
-      .attr("class", "node")
-      .attr("transform", d => `translate(${d.x},${d.y})`);
+            setTimeout(() => {
+                showToast("Login berhasil! Selamat datang, Carlo.", "success");
+                btn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Masuk ke Portal';
+                btn.disabled = false;
+            }, 2000);
+        } else {
+            showToast("Username atau password salah!", "error");
+        }
+    });
+</script>
 
-    node.append("rect")
-      .attr("x", -60)
-      .attr("y", -20)
-      .attr("width", 120)
-      .attr("height", 40);
-
-    node.append("text")
-      .attr("dy", "-0.2em")
-      .text(d => d.data.name);
-
-    node.append("text")
-      .attr("dy", "1em")
-      .text(d => d.data.title)
-      .style("font-size", "10px");
-  </script>
 </body>
 </html>

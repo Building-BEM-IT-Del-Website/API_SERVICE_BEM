@@ -45,14 +45,22 @@ Route::middleware('auth:api')->group(function () {
 
     Route::apiResource('jabatan', JabatanController::class);
 
+Route::prefix('jabatan')->group(function () {
+    Route::get('trashed/list', [JabatanController::class, 'trashed']);
+    Route::post('restore/{id}', [JabatanController::class, 'restore']);
+    Route::delete('force-delete/{id}', [JabatanController::class, 'forceDelete']);
+});
+
 
     Route::apiResource('ormawas', OrmawaController::class);
 
-    Route::prefix('ormawas')->group(function () {
-        Route::get('trashed/list', [OrmawaController::class, 'trashed']);
-        Route::post('restore/{id}', [OrmawaController::class, 'restore']);
-        Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
-    });
+Route::prefix('ormawas')->group(function () {
+    Route::get('trashed/list', [OrmawaController::class, 'trashed']);
+    Route::post('{id}/update', [OrmawaController::class, 'updatee']);
+    Route::post('restore/{id}', [OrmawaController::class, 'restore']);
+    Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
+});
+
 
     Route::apiResource('struktur-organisasi', StrukturOrganisasiController::class);
 

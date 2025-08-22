@@ -17,10 +17,12 @@ class OrmawaResource extends JsonResource
         return [
             'id' => $this->id,
             'nama' => $this->nama,
-            'jenis_ormawa_id' => $this->jenis_ormawa_id,
+              'jenis_ormawa' => [
+                'id' => $this->jenisOrmawa->id ?? null,
+                'nama' => $this->jenisOrmawa->nama ?? null,
+            ],
             'deskripsi' => $this->deskripsi,
-            'logo' => $this->logo,
-            'logo_url' => asset('storage/ormawas/' . $this->logo),
+            'logo' => asset('storage/' . $this->logo),
             'visi' => $this->visi,
             'misi' => $this->misi,
             'status' => $this->status,
