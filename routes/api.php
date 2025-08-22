@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\JenisOrmawaController;
+use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\OrmawaController;
 use App\Http\Controllers\PengumumanController;
@@ -24,6 +25,7 @@ Route::prefix('auth')->group(function () {
         Route::post('set-ormawa-aktif', [AuthController::class, 'setOrmawaAktif']);
     });
 });
+
 
 // Route CRUD dengan apiResource
 Route::middleware('auth:api')->group(function () {
@@ -72,7 +74,7 @@ Route::prefix('ormawas')->group(function () {
         Route::delete('force-delete/{id}', [StrukturOrganisasiController::class, 'forceDelete']);
     });
 
-     Route::apiResource('sub-kategori', SubKategoriController::class);
+    Route::apiResource('sub-kategori', SubKategoriController::class);
 
     Route::prefix('sub-kategori')->group(function () {
         Route::get('trashed/list', [SubKategoriController::class, 'trashed']);
@@ -88,8 +90,8 @@ Route::prefix('ormawas')->group(function () {
         Route::post('restore/{id}', [KategoriController::class, 'restore']);
         Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
     });
+
 Route::apiResource('pengumuman', PengumumanController::class);
-Route::apiResource('berita', BeritaController::class);
 Route::prefix('pengumuman')->group(function () {
     Route::get('trashed/list', [PengumumanController::class, 'trashed']);
     Route::post('restore/{id}', [PengumumanController::class, 'restore']);
@@ -97,12 +99,40 @@ Route::prefix('pengumuman')->group(function () {
 });
 
 
+
+    Route::prefix('aspirasi')->group(function () {
+        // butuh permission 'lihat_aspirasi' (admin & kemahasiswaan)
+        Route::get('{aspirasi}', [AspirasiController::class, 'show'])
+            ->name('show')
+            ->middleware('permission:lihat_aspirasi');
+
+        // butuh permission 'kelola_aspirasi' (admin)
+        Route::middleware('permission:kelola_aspirasi')->group(function () {
+            Route::patch('{aspirasi}', [AspirasiController::class, 'update'])->name('update');
+            Route::delete('{aspirasi}', [AspirasiController::class, 'destroy'])->name('destroy');
+            Route::get('trashed/list', [AspirasiController::class, 'trashed'])->name('trashed');
+            Route::post('restore/{id}', [AspirasiController::class, 'restore'])->name('restore');
+            Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete'])->name('forceDelete');
+        });
+    });
+
+    // butuh permission 'kelola_kalendWer' (admin)
+    Route::prefix('kalender')->middleware(['permission:kelola_kalender'])->group(function () {
+        Route::post('/', [KalenderController::class, 'store'])->name('store');
+        Route::put('{kalender}', [KalenderController::class, 'update'])->name('update');
+        Route::delete('{kalender}', [KalenderController::class, 'destroy'])->name('destroy');
+
+        Route::get('trashed/list', [KalenderController::class, 'trashed'])->name('trashed');
+        Route::post('restore/{id}', [KalenderController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{id}', [KalenderController::class, 'forceDelete'])->name('forceDelete');
+        Route::apiResource('berita', BeritaController::class);
+    });
 });
 
-Route::apiResource('aspirasi', AspirasiController::class);
+// Rute Publik untuk aspirasi
+Route::get('aspirasi/', [AspirasiController::class, 'index'])->name('index');
+Route::post('aspirasi/', [AspirasiController::class, 'store'])->name('store');
 
-Route::prefix('aspirasi')->group(function () {
-    Route::get('list', [AspirasiController::class, 'trashed']);
-    Route::post('restore/{id}', [AspirasiController::class, 'restore']);
-    Route::delete('force-delete/{id}', [AspirasiController::class, 'forceDelete']);
-});
+// Rute publik untuk kalender
+Route::get('kalender', [KalenderController::class, 'index'])->name('kalender.index');
+Route::get('kalender/{kalender}', [KalenderController::class, 'show'])->name('kalender.show');

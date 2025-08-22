@@ -3541,6 +3541,7 @@
                 "source": "https://github.com/stella-maris-solutions/clock/tree/0.1.7"
             },
             "time": "2022-11-25T16:15:06+00:00"
+
         },
         {
             "name": "symfony/clock",
@@ -8720,12 +8721,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
