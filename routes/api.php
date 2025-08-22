@@ -96,7 +96,7 @@ Route::middleware('auth:api')->group(function () {
     // butuh permission 'kelola_kalender' (admin)
     Route::prefix('kalender')->middleware(['permission:kelola_kalender'])->group(function () {
         Route::post('/', [KalenderController::class, 'store'])->name('store');
-        Route::put('{kalender}', [KalenderController::class, 'update'])->name('update');
+        Route::patch('{kalender}', [KalenderController::class, 'update'])->name('update');
         Route::delete('{kalender}', [KalenderController::class, 'destroy'])->name('destroy');
 
         Route::get('trashed/list', [KalenderController::class, 'trashed'])->name('trashed');
