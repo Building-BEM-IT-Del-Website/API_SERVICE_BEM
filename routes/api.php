@@ -3,6 +3,8 @@
 use App\Http\Controllers\AspirasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Guest\BerandaController;
+use App\Http\Controllers\Guest\OrmawaController as GuestOrmawaController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\JenisOrmawaController;
 use App\Http\Controllers\KalenderController;
@@ -12,8 +14,31 @@ use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\SubKategoriController;
 use App\Http\Controllers\BeritaController;
-
+use App\Http\Controllers\Guest\PengumumanController as GuestPengumumanController;
 use App\Http\Controllers\UserController;
+
+// GUEST ROUTES
+Route::prefix('pengumuman')->group(function () {
+    // Halaman Beranda
+    Route::get('/terbaru', [BerandaController::class, 'latest']);
+    Route::get('/agenda-terdekat', [BerandaController::class, 'upcomingEvents']);
+
+    // Halaman Pengumuman
+    Route::get('/halaman', [GuestPengumumanController::class, 'index']);
+    Route::get('/arsip', [GuestPengumumanController::class, 'archives']);
+
+    Route::get('/detail/{id}', [GuestPengumumanController::class, 'show']);
+});
+
+Route::prefix('aspirasi')->group(function () {
+    // Halaman Beranda
+    Route::get('/disetujui', [BerandaController::class, 'getPublished']);
+    Route::post('/tambah', [BerandaController::class, 'storeAspirasi']);
+});
+
+// Halaman Ormawa
+Route::get('ormawas/list', [GuestOrmawaController::class, 'listAll']);
+
 
 Route::prefix('auth')->group(function () {
     // Login route tanpa middleware
@@ -49,21 +74,21 @@ Route::middleware('auth:api')->group(function () {
 
     Route::apiResource('jabatan', JabatanController::class);
 
-Route::prefix('jabatan')->group(function () {
-    Route::get('trashed/list', [JabatanController::class, 'trashed']);
-    Route::post('restore/{id}', [JabatanController::class, 'restore']);
-    Route::delete('force-delete/{id}', [JabatanController::class, 'forceDelete']);
-});
+    Route::prefix('jabatan')->group(function () {
+        Route::get('trashed/list', [JabatanController::class, 'trashed']);
+        Route::post('restore/{id}', [JabatanController::class, 'restore']);
+        Route::delete('force-delete/{id}', [JabatanController::class, 'forceDelete']);
+    });
 
 
     Route::apiResource('ormawas', OrmawaController::class);
 
-Route::prefix('ormawas')->group(function () {
-    Route::get('trashed/list', [OrmawaController::class, 'trashed']);
-    Route::post('{id}/update', [OrmawaController::class, 'updatee']);
-    Route::post('restore/{id}', [OrmawaController::class, 'restore']);
-    Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
-});
+    Route::prefix('ormawas')->group(function () {
+        Route::get('trashed/list', [OrmawaController::class, 'trashed']);
+        Route::post('{id}/update', [OrmawaController::class, 'updatee']);
+        Route::post('restore/{id}', [OrmawaController::class, 'restore']);
+        Route::delete('force-delete/{id}', [OrmawaController::class, 'forceDelete']);
+    });
 
 
     Route::apiResource('struktur-organisasi', StrukturOrganisasiController::class);
@@ -83,7 +108,7 @@ Route::prefix('ormawas')->group(function () {
     });
 
 
-     Route::apiResource('kategori', KategoriController::class);
+    Route::apiResource('kategori', KategoriController::class);
 
     Route::prefix('kategori')->group(function () {
         Route::get('trashed/list', [KategoriController::class, 'trashed']);
@@ -91,12 +116,12 @@ Route::prefix('ormawas')->group(function () {
         Route::delete('force-delete/{id}', [KategoriController::class, 'forceDelete']);
     });
 
-Route::apiResource('pengumuman', PengumumanController::class);
-Route::prefix('pengumuman')->group(function () {
-    Route::get('trashed/list', [PengumumanController::class, 'trashed']);
-    Route::post('restore/{id}', [PengumumanController::class, 'restore']);
-    Route::delete('force-delete/{id}', [PengumumanController::class, 'forceDelete']);
-});
+    Route::apiResource('pengumuman', PengumumanController::class);
+    Route::prefix('pengumuman')->group(function () {
+        Route::get('trashed/list', [PengumumanController::class, 'trashed']);
+        Route::post('restore/{id}', [PengumumanController::class, 'restore']);
+        Route::delete('force-delete/{id}', [PengumumanController::class, 'forceDelete']);
+    });
 
 
 
@@ -129,9 +154,6 @@ Route::prefix('pengumuman')->group(function () {
     });
 });
 
-// Rute Publik untuk aspirasi
-Route::get('aspirasi/', [AspirasiController::class, 'index'])->name('index');
-Route::post('aspirasi/', [AspirasiController::class, 'store'])->name('store');
 
 // Rute publik untuk kalender
 Route::get('kalender', [KalenderController::class, 'index'])->name('kalender.index');

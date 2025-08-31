@@ -37,4 +37,8 @@ class Pengumuman extends Model
     {
         return $this->belongsTo(User::class, 'create_by');
     }
+    public function ormawa()
+    {
+        return $this->belongsTo(Ormawa::class, 'ormawa_id');
+    }
 }
