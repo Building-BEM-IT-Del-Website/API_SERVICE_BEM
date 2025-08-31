@@ -28,6 +28,9 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             AspirasiSeeder::class,
             KalenderSeeder::class,
+            SubKategorinSeeder::class,
+            KategorinSeeder::class,
+            PengumumanSeeder::class,
         ]);
     }
 }
