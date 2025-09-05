@@ -17,20 +17,28 @@ class BeritaController extends Controller
         ]);
     }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'nama' => 'required|string|max:255',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama'            => 'required|string|max:255',
+            'deskripsi'       => 'nullable|string',
+            'file_paths'      => 'nullable|json',
+            'tipe_berita'     => 'required|in:Info,Pengumuman,Event,Umum,Darurat,Lainnya',
+            'tanggal_mulai'   => 'nullable|date',
+            'tanggal_berakhir'=> 'nullable|date',
+            'create_by'       => 'nullable|exists:users,id',
+            'user_id'         => 'nullable|exists:users,id',
+            'ormawa_id'       => 'nullable|exists:ormawas,id',
+        ]);
 
-    $berita = Berita::create($request->only('nama'));
+        $berita = Berita::create($request->all());
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Berita berhasil ditambahkan',
-        'data' => $berita,
-    ], 201);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Berita berhasil ditambahkan',
+            'data' => $berita,
+        ], 201);
+    }
 
     public function show($id)
     {
@@ -62,12 +70,18 @@ public function store(Request $request)
         }
 
         $request->validate([
-            'nama' => 'required|string|max:255'
+            'nama'            => 'sometimes|required|string|max:255',
+            'deskripsi'       => 'nullable|string',
+            'file_paths'      => 'nullable|json',
+            'tipe_berita'     => 'nullable|in:Info,Pengumuman,Event,Umum,Darurat,Lainnya',
+            'tanggal_mulai'   => 'nullable|date',
+            'tanggal_berakhir'=> 'nullable|date',
+            'create_by'       => 'nullable|exists:users,id',
+            'user_id'         => 'nullable|exists:users,id',
+            'ormawa_id'       => 'nullable|exists:ormawas,id',
         ]);
 
-        $berita->update([
-            'nama' => $request->nama
-        ]);
+        $berita->update($request->all());
 
         return response()->json([
             'success' => true,

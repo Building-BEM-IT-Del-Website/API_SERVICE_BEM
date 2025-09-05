@@ -1,0 +1,48 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('berita', function (Blueprint $table) {
+    $table->id();
+    $table->string('nama');
+    $table->text('deskripsi');
+    $table->json('file_paths')->nullable();
+    $table->enum('tipe_berita', [
+        'Info',
+        'Pengumuman',
+        'Event',
+        'Umum',
+        'Darurat',
+        'Lainnya'
+    ])->default('Info');
+    $table->dateTime('tanggal_mulai')->nullable();
+    $table->dateTime('tanggal_berakhir')->nullable();
+    
+    // Relasi
+    $table->foreignId('create_by')->nullable()->constrained('users')->onDelete('cascade');
+    $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+    $table->foreignId('ormawa_id')->nullable()->constrained('ormawas')->onDelete('cascade');
+
+    $table->softDeletes();
+    $table->timestamps();
+});
+
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};
